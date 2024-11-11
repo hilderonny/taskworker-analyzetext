@@ -46,9 +46,19 @@ When calling the TaskBridge `/api/tasks/complete/:id` API, the following JSON st
 |`library`|Library or application used for chatting|
 |`model`|LLM model used|
 
-## Installation on Windows
+## Installation
 
-First download and install [Ollama](https://ollama.com/download). Open a shell and tell Ollama to download the model to use, e.g. `llama3.2`. This model is about 2 GB in size and requires about 4 GB of RAM or VRAM. See https://ollama.com/library for a list of available models.
+First download and install [Ollama](https://ollama.com/download).
+
+For Linux:
+
+```sh
+curl -fsSL https://ollama.com/install.sh | sh
+sudo useradd -r -s /bin/false -U -m -d /usr/share/ollama ollama
+sudo usermod -a -G ollama $(whoami)
+```
+
+Next tell Ollama to download the model to use, e.g. `llama3.2`. This model is about 2 GB in size and requires about 4 GB of RAM or VRAM. See https://ollama.com/library for a list of available models.
 
 ```sh
 ollama pull llama3.2
@@ -58,13 +68,70 @@ Next download and install [Python 3.13](https://www.python.org/downloads/release
 
 ```sh
 python3.13 -m venv venv
-venv\Scripts\activate
+venv\Scripts\activate # Windows
+source ./venv/bin/activate # Linux
 pip install ollama requests
 ```
 
-## Running
+## Running directly
 
 ```sh
 venv\Scripts\activate
 python analyzetext.py --taskbridgeurl http://192.168.178.39:42000/ --worker ROG --model llama3.2
+```
+
+## Setting up background services on linux
+
+**/etc/systemd/system/ollama.service**:
+
+```
+[Unit]
+Description=Ollama Service
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/ollama serve
+User=ollama
+Group=ollama
+Restart=always
+RestartSec=3
+Environment="PATH=$PATH"
+
+[Install]
+WantedBy=default.target
+```
+
+Then start the service:
+
+```sh
+sudo systemctl daemon-reload
+sudo systemctl enable ollama.service
+sudo systemctl start ollama.service
+```
+
+Adopt the shell script `analyzetext.sh` to your needs and create SystemD config files (if you want tu run the worker as Linux service).
+
+**/etc/systemd/system/taskworker-analyzetext.service**:
+
+```
+[Unit]
+Description=Forensic Task Worker - Text Analyzer
+
+[Service]
+ExecStart=/taskworker-analyzetext/analyzetext.sh
+Restart=always
+User=user
+WorkingDirectory=/taskworker-analyzetext/
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Finally register and start the services.
+
+```
+chmod +x ./analyzetext.sh
+sudo systemctl daemon-reload
+sudo systemctl enable taskworker-analyzetext.service
+sudo systemctl start taskworker-analyzetext.service
 ```
