@@ -58,6 +58,8 @@ sudo useradd -r -s /bin/false -U -m -d /usr/share/ollama ollama
 sudo usermod -a -G ollama $(whoami)
 ```
 
+You need to edit the file `/etc/systemd/system/ollama.service` and add the line `Environment="CUDA_VISIBLE_DEVICES=0"`under the `Service` area to force Ollama to use a specific GPU.
+
 Next tell Ollama to download the model to use, e.g. `llama3.2`. This model is about 2 GB in size and requires about 4 GB of RAM or VRAM. See https://ollama.com/library for a list of available models.
 
 ```sh
@@ -80,34 +82,7 @@ venv\Scripts\activate
 python analyzetext.py --taskbridgeurl http://192.168.178.39:42000/ --worker ROG --model llama3.2
 ```
 
-## Setting up background services on linux
-
-**/etc/systemd/system/ollama.service**:
-
-```
-[Unit]
-Description=Ollama Service
-After=network-online.target
-
-[Service]
-ExecStart=/usr/bin/ollama serve
-User=ollama
-Group=ollama
-Restart=always
-RestartSec=3
-Environment="PATH=$PATH"
-
-[Install]
-WantedBy=default.target
-```
-
-Then start the service:
-
-```sh
-sudo systemctl daemon-reload
-sudo systemctl enable ollama.service
-sudo systemctl start ollama.service
-```
+## Setting up background service on linux
 
 Adopt the shell script `analyzetext.sh` to your needs and create SystemD config files (if you want tu run the worker as Linux service).
 
