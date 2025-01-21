@@ -72,7 +72,8 @@ Next download and install [Python 3.13](https://www.python.org/downloads/release
 python3.13 -m venv venv
 venv\Scripts\activate # Windows
 source ./venv/bin/activate # Linux
-pip install ollama requests
+pip install requests
+pip install ollama==0.3.3
 ```
 
 ## Running directly
