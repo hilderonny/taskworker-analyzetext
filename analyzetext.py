@@ -57,6 +57,9 @@ def check_and_process():
     result_to_report["result"]["version"] = VERSION
     result_to_report["result"]["library"] = LIBRARY
     result_to_report["result"]["model"] = MODEL
+    result_to_report["result"]["prompt_tokens"] = llmresponse["prompt_eval_count"]
+    result_to_report["result"]["response_tokens"] = llmresponse["eval_count"]
+    #print(json.dumps(llmresponse, indent=2))
     print(json.dumps(result_to_report, indent=2))
     print("Reporting result")
     requests.post(f"{APIURL}tasks/complete/{taskid}/", json=result_to_report)
